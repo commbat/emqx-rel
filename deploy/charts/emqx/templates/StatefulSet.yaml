@@ -55,6 +55,30 @@ spec:
           items:
           - key: acl.conf
             path: acl.conf
+      {{- if .Values.emqxTimescaleConf }}
+      - name: emqx-timescale-conf
+        configMap:
+          name: {{ include "emqx.fullname" . }}-timescale
+          items:
+            - key: emqx_backend_timescale.conf
+              path: emqx_backend_timescale.conf
+      {{- end }}
+      {{- if .Values.emqxTimescaleTemplate }}
+      - name: emqx-timescale-template
+        configMap:
+          name: {{ include "emqx.fullname" . }}-timescale-template
+          items:
+              - key: emqx_backend_timescale.tmpl
+                path: emqx_backend_timescale.tmpl
+      {{- end }}
+      {{- if .Values.emqxLoadedPlugins }}
+      - name: emqx-loaded-plugins
+        configMap:
+          name: {{ include "emqx.fullname" . }}-loaded-plugins
+          items:
+              - key: loaded_plugins
+                path: loaded_plugins
+      {{- end }}
       {{- if not .Values.persistence.enabled }}
       - name: emqx-data
         emptyDir: {}
@@ -123,11 +147,27 @@ spec:
           resources:
 {{ toYaml .Values.resources | indent 12 }}
           volumeMounts:
+          # TODO: Mount loaded_plugins and timescale plugin configuration
           - name: emqx-data
             mountPath: "/opt/emqx/data/mnesia"
           - name: emqx-acl
             mountPath: "/opt/emqx/etc/acl.conf"
             subPath: "acl.conf"
+          {{- if .Values.emqxTimescaleConf }}
+          - name: emqx-timescale-conf
+            mountPath: "/opt/emqx/etc/plugins/emqx_backend_timescale.conf"
+            subPath: "emqx_backend_timescale.conf"
+          {{- end }}
+          {{- if .Values.emqxTimescaleTemplate }}
+          - name: emqx-timescale-template
+            mountPath: "/opt/emqx/data/templates/emqx_backend_timescale.tmpl"
+            subPath: "emqx_backend_timescale.tmpl"
+          {{- end }}
+          {{- if .Values.emqxLoadedPlugins }}
+          - name: emqx-loaded-plugins
+            mountPath: "/opt/emqx/data/loaded_plugins"
+            subPath: "loaded_plugins"
+          {{- end }}
           {{ if .Values.emqxLicneseSecretName  }}
           - name: emqx-license
             mountPath: "/opt/emqx/etc/emqx.lic"

@@ -74,6 +74,12 @@ emqxAclConfig: >
   {deny, all, subscribe, ["$SYS/#", {eq, "#"}]}.
   {allow, all}.
 
+emqxTimescaleConf:
+
+emqxTimescaleTemplate:
+
+loadedPlugins:
+
 ## EMQX Enterprise Edition requires manual creation of a Secret containing the licensed content. Write the name of Secret to the value of "emqxLicneseSecretName"
 ## Example:
 ##   kubectl create secret generic emqx-license-secret-name --from-file=/path/to/emqx.lic
