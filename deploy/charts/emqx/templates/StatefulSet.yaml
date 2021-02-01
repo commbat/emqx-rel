@@ -103,7 +103,7 @@ spec:
       {{- end }}
       containers:
         - name: emqx
-          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.image.pullSecrets }}
           imagePullSecrets:
@@ -147,7 +147,6 @@ spec:
           resources:
 {{ toYaml .Values.resources | indent 12 }}
           volumeMounts:
-          # TODO: Mount loaded_plugins and timescale plugin configuration
           - name: emqx-data
             mountPath: "/opt/emqx/data/mnesia"
           - name: emqx-acl
@@ -163,6 +162,7 @@ spec:
             mountPath: "/opt/emqx/data/templates/emqx_backend_timescale.tmpl"
             subPath: "emqx_backend_timescale.tmpl"
           {{- end }}
+          # Find if this file is really needed
           {{- if .Values.emqxLoadedPlugins }}
           - name: emqx-loaded-plugins
             mountPath: "/opt/emqx/data/loaded_plugins"

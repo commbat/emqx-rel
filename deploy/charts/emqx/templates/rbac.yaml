@@ -3,6 +3,8 @@ kind: ServiceAccount
 metadata:
   namespace: {{ .Release.Namespace }}
   name: {{ include "emqx.fullname" . }}
+imagePullSecrets:
+  - name: awsecr-cred
 ---
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1beta1
