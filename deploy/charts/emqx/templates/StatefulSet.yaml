@@ -55,6 +55,30 @@ spec:
           items:
           - key: acl.conf
             path: acl.conf
+      {{- if .Values.emqxTimescaleConf }}
+      - name: emqx-timescale-conf
+        configMap:
+          name: {{ include "emqx.fullname" . }}-timescale
+          items:
+            - key: emqx_backend_timescale.conf
+              path: emqx_backend_timescale.conf
+      {{- end }}
+      {{- if .Values.emqxTimescaleTemplate }}
+      - name: emqx-timescale-template
+        configMap:
+          name: {{ include "emqx.fullname" . }}-timescale-template
+          items:
+              - key: emqx_backend_timescale.tmpl
+                path: emqx_backend_timescale.tmpl
+      {{- end }}
+      {{- if .Values.emqxLoadedPlugins }}
+      - name: emqx-loaded-plugins
+        configMap:
+          name: {{ include "emqx.fullname" . }}-loaded-plugins
+          items:
+              - key: loaded_plugins
+                path: loaded_plugins
+      {{- end }}
       {{- if not .Values.persistence.enabled }}
       - name: emqx-data
         emptyDir: {}
@@ -79,14 +103,8 @@ spec:
       {{- end }}
       containers:
         - name: emqx
-          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.image.pullSecrets }}
-          imagePullSecrets:
-          {{- range .Values.image.pullSecrets }}
-          - name: {{ . }}
-          {{- end }}
-          {{- end }}
           ports:
           - name: mqtt
             containerPort: {{ .Values.emqxConfig.EMQX_LISTENER__TCP__EXTERNAL | default 1883 }}
@@ -128,6 +146,22 @@ spec:
           - name: emqx-acl
             mountPath: "/opt/emqx/etc/acl.conf"
             subPath: "acl.conf"
+          {{- if .Values.emqxTimescaleConf }}
+          - name: emqx-timescale-conf
+            mountPath: "/opt/emqx/etc/plugins/emqx_backend_timescale.conf"
+            subPath: "emqx_backend_timescale.conf"
+          {{- end }}
+          {{- if .Values.emqxTimescaleTemplate }}
+          - name: emqx-timescale-template
+            mountPath: "/opt/emqx/data/templates/emqx_backend_timescale.tmpl"
+            subPath: "emqx_backend_timescale.tmpl"
+          {{- end }}
+          # Find if this file is really needed
+          {{- if .Values.emqxLoadedPlugins }}
+          - name: emqx-loaded-plugins
+            mountPath: "/opt/emqx/data/loaded_plugins"
+            subPath: "loaded_plugins"
+          {{- end }}
           {{ if .Values.emqxLicneseSecretName  }}
           - name: emqx-license
             mountPath: "/opt/emqx/etc/emqx.lic"
@@ -140,6 +174,12 @@ spec:
               port: {{ .Values.emqxConfig.EMQX_MANAGEMENT__LISTENER__HTTP | default 8081 }}
             initialDelaySeconds: 5
             periodSeconds: 5
+    {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.image.pullSecrets }}
+      - name: {{ . }}
+      {{- end }}
+    {{- end }}
     {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
